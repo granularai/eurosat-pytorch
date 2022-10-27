@@ -1,4 +1,4 @@
-import torch
+import os, torch
 
 def update_confusion_matrix(conf_matrix, outputs, labels):
     with torch.no_grad():
@@ -55,4 +55,17 @@ def print_loss_metrics(losses, conf_matrix, classes):
         print(f"\t\t\t\t {met_key}: {avg_metric_map[met_key]}")
     print("")
 
-    return avg_metric_map["f1 score"]
+    return avg_loss, avg_metric_map
+
+def upload_artifacts(src_path, dst_path, version, mode):
+    if mode == "code":
+        dst_code_path = f"{dst_path}/experiments/{version}/code"
+        os.system(f"gsutil -m cp -r {src_path}/* {dst_code_path}")
+    elif mode == "logs":
+        log_file_name = src_path.split("/")[-1]
+        dst_logs_path = f"{dst_path}/experiments/{version}/logs/{log_file_name}"
+        os.system(f"gsutil cp {src_path} {dst_logs_path}")
+    elif mode == "state":
+        state_file_name = src_path.split("/")[-1]
+        dst_state_path = f"{dst_path}/experiments/{version}/states/{state_file_name}"
+        os.system(f"gsutil cp {src_path} {dst_state_path}")
