@@ -126,7 +126,6 @@ payload = json.dumps({
         "metrics": ["precision", "recall", "f1-score"]
     }
 })
-
 params = { "orgId": args.org_id }
 headers = {
   'Content-Type': 'application/json',
@@ -137,6 +136,8 @@ response = requests.post(
     url=experiment_url, 
     data=payload, 
     headers=headers, params=params)
+
+print(response)
 
 experiment_id = response.json()["experiment"]["id"]
 
@@ -230,6 +231,12 @@ try:
 
             torch.save(chkpnt_map, state_file_path)
             upload_artifacts(mode="state",src_path=state_file_path, dst_path=dst_bucket_path, version=version)
+
+            response = requests.put(
+                url=f"{experiment_url}/{experiment_id}",
+                data=json.dumps({ "bestModel": f"{dst_bucket_path}/experiments/{version}/states/{state_file_path.split('/')[-1]}"}),
+                headers=headers, params=params
+            )            
 
     response = requests.put(
         url=f"{experiment_url}/{experiment_id}",
